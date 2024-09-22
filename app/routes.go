@@ -17,3 +17,7 @@ func loadRoutes() *chi.Mux {
 
 	return router
 }
+
+func loadFileRoutes() {
+	
+}
