@@ -1,32 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/hytech-racing/Mock-Cloud-Server/app"
 )
 
 func main() {
-	r := chi.NewRouter()
+	a := app.New()
 
-	port := ":3000"
-	server := &http.Server{
-		Addr:    port,
-		Handler: r,
-	}
-
-	r.Get("/get", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("get route called")
-	})
-
-	r.Post("/upload", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("upload route called")
-	})
-
-	err := server.ListenAndServe()
+	err := a.Start(context.TODO())
 
 	if err != nil {
-		fmt.Println("failed to listen to server", err)
+		fmt.Println("failed to start app:", err)
 	}
 }
