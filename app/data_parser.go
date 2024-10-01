@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sort"
+	"time"
 )
 
 type DataEntry struct {
@@ -14,7 +16,7 @@ type DataEntry struct {
 	EventType string `json:"event type"`
 }
 
-func ParseJSON(file *os.File, queryParams url.Values) {
+func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 	var nonEmptyParams []string
 	var dataEntries []DataEntry
 
@@ -40,17 +42,30 @@ func ParseJSON(file *os.File, queryParams url.Values) {
 	err := decoder.Decode(&dataEntries)
 	if err != nil {
 		fmt.Println("Error parsing JSON:", err)
-		return
 	}
+
+	var matchingEntries []DataEntry
 
 	for _, entry := range dataEntries {
 		for _, p := range nonEmptyParams {
-			// fmt.Printf("Checking param %s\n", p)
 			if entryContains(entry, p) {
-				fmt.Println(entry)
+				matchingEntries = append(matchingEntries, entry)
 			}
 		}
 	}
+
+	// Sort matching entries by date
+	sort.Slice(matchingEntries, func(i, j int) bool {
+		date1, err1 := time.Parse("01-02-2006", matchingEntries[i].Date)
+		date2, err2 := time.Parse("01-02-2006", matchingEntries[j].Date)
+		if err1 != nil || err2 != nil {
+			// If there's an error in parsing, don't sort by date
+			return false
+		}
+		return date1.Before(date2)
+	})
+
+	return matchingEntries
 }
 
 func entryContains(entry DataEntry, value string) bool {

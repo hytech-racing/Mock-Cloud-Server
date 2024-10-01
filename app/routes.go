@@ -11,6 +11,7 @@ import (
 
 func loadRoutes() *chi.Mux {
 	router := chi.NewRouter()
+	var matchingEntries []DataEntry
 
 	router.Use(middleware.Logger)
 	router.Get("/api/v2/mcap", func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +35,8 @@ func loadRoutes() *chi.Mux {
 
 		defer file.Close()
 
-		ParseJSON(file, queryParams)
+		matchingEntries = ParseJSON(file, queryParams)
+		fmt.Println(matchingEntries)
 
 	})
 

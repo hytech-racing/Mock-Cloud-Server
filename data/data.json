@@ -36,7 +36,7 @@
         "mat_path": "/path/to/s3/object",
         "vn_lat_lon_path": "/path/to/s3/object",
         "velocity_plot_path": "/path/to/s3/object",
-        "date": "08-24-2024",
+        "date": "08-24-2020",
         "location": "MRDC",
         "notes": "car ran!",
         "event type": "acceleration"
