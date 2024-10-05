@@ -10,9 +10,9 @@ type App struct {
 	router http.Handler
 }
 
-func New() *App {
-	app := &App {
-		router: loadRoutes(),
+func New(s3Repo *S3Repository) *App { // Accept *S3Repository as a parameter
+	app := &App{
+		router: loadRoutes(s3Repo), // Pass s3Repo to loadRoutes
 	}
 
 	return app
@@ -20,15 +20,15 @@ func New() *App {
 
 func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
-		Addr: ":3000",
+		Addr:    ":3000",
 		Handler: a.router,
 	}
 
 	err := server.ListenAndServe()
 
 	if err != nil {
-		return fmt.Errorf("failed to start server %", err)
+		return fmt.Errorf("failed to start server %s", err)
 	}
 
-	return nil;
+	return nil
 }
