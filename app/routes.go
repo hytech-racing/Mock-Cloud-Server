@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/hytech-racing/Mock-Cloud-Server/handler"
 )
 
 func loadRoutes(s3Repo *S3Repository) *chi.Mux {
@@ -40,5 +41,12 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 
 	})
 
+	router.Route("/api/v2/mcap/", loadFileRoutes)
+
 	return router
+}
+func loadFileRoutes(router chi.Router) {
+	fileHandler := &handler.File{}
+
+	router.Post("/upload", fileHandler.UploadFile)
 }

@@ -8,7 +8,8 @@ import (
 type File struct {}
 
 func (o *File) UploadFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("create order")
+	fmt.Println("uploaded file successfully");
+	w.WriteHeader(http.StatusOK);
 }
 
 func (o *File) GetFile(w http.ResponseWriter, r *http.Request) {
