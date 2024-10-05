@@ -13,7 +13,9 @@ type DataEntry struct {
 	Date      string `json:"date"`
 	Location  string `json:"location"`
 	Notes     string `json:"notes"`
-	EventType string `json:"event type"`
+	EventType string `json:"event_type"`
+	Bucket    string `json:"aws_bucket"`
+	Path      string `json:"mcap_path"`
 }
 
 func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
@@ -23,7 +25,7 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 	date := queryParams.Get("date")
 	location := queryParams.Get("location")
 	notes := queryParams.Get("notes")
-	eventType := queryParams.Get("eventType")
+	eventType := queryParams.Get("event_type")
 
 	if date != "" {
 		nonEmptyParams = append(nonEmptyParams, date)

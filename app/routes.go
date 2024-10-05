@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func loadRoutes() *chi.Mux {
+func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 	router := chi.NewRouter()
 	var matchingEntries []DataEntry
 
@@ -18,14 +18,6 @@ func loadRoutes() *chi.Mux {
 		w.WriteHeader(http.StatusOK)
 
 		queryParams := r.URL.Query()
-
-		// date := queryParams.Get("date")
-		// location := queryParams.Get("location")
-		// notes := queryParams.Get("notes")
-		// eventType := queryParams.Get("eventType")
-
-		// response := fmt.Sprintf("date: %s, location: %s, notes: %s, eventType: %s", date, location, notes, eventType)
-		// fmt.Println(response)
 
 		file, err := os.Open("data/data.json")
 
@@ -36,7 +28,15 @@ func loadRoutes() *chi.Mux {
 		defer file.Close()
 
 		matchingEntries = ParseJSON(file, queryParams)
-		fmt.Println(matchingEntries)
+		// fmt.Println(matchingEntries)
+
+		for _, entry := range matchingEntries {
+			fmt.Println("BUCKET: " + entry.Bucket)
+			fmt.Println("PATH: " + entry.Path)
+
+			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path)
+			fmt.Println(signedUrl)
+		}
 
 	})
 

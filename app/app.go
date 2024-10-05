@@ -10,9 +10,9 @@ type App struct {
 	router http.Handler
 }
 
-func New() *App {
+func New(s3Repo *S3Repository) *App { // Accept *S3Repository as a parameter
 	app := &App{
-		router: loadRoutes(),
+		router: loadRoutes(s3Repo), // Pass s3Repo to loadRoutes
 	}
 
 	return app
