@@ -1,4 +1,0 @@
-Dockerfile
-.git
-/build
-/vendor

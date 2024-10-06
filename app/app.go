@@ -20,7 +20,7 @@ func New(s3Repo *S3Repository) *App { // Accept *S3Repository as a parameter
 
 func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
-		Addr:    ":3000",
+		Addr:    ":8080",
 		Handler: a.router,
 	}
 
