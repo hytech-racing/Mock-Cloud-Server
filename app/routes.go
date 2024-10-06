@@ -21,32 +21,29 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 		queryParams := r.URL.Query()
 
 		file, err := os.Open("data/data.json")
-
 		if err != nil {
+			http.Error(w, "Failed to open data file", http.StatusInternalServerError)
 			fmt.Println(err)
+			return
 		}
-
 		defer file.Close()
 
 		matchingEntries = ParseJSON(file, queryParams)
-		// fmt.Println(matchingEntries)
+
+		w.Header().Set("Content-Type", "text/plain")
 
 		for _, entry := range matchingEntries {
-			fmt.Println("BUCKET: " + entry.Bucket)
-			fmt.Println("PATH: " + entry.Path)
-
 			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path)
-			fmt.Println(signedUrl)
+			w.Write([]byte(signedUrl + "\n"))
 		}
-
 	})
 
 	router.Route("/api/v2/mcap/", loadFileRoutes)
 
 	return router
 }
+
 func loadFileRoutes(router chi.Router) {
 	fileHandler := &handler.File{}
-
 	router.Post("/upload", fileHandler.UploadFile)
 }
