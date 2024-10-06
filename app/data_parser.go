@@ -16,6 +16,7 @@ type DataEntry struct {
 	EventType string `json:"event_type"`
 	Bucket    string `json:"aws_bucket"`
 	Path      string `json:"mcap_path"`
+	SignedURL string `json:"signed_url"`
 }
 
 func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {

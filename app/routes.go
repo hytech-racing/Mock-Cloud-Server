@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -29,12 +30,24 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 		defer file.Close()
 
 		matchingEntries = ParseJSON(file, queryParams)
+		fmt.Println(matchingEntries)
 
-		w.Header().Set("Content-Type", "text/plain")
-
+		var entries []DataEntry
 		for _, entry := range matchingEntries {
 			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path)
-			w.Write([]byte(signedUrl + "\n"))
+			entry.SignedURL = signedUrl
+			entries = append(entries, entry)
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.SetEscapeHTML(false)
+		w.Header().Set("Content-Type", "application/json")
+		err = encoder.Encode(entries)
+
+		if err != nil {
+			http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
+			fmt.Println(err)
+			return
 		}
 	})
 
