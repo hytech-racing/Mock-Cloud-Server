@@ -16,7 +16,7 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 	var matchingEntries []DataEntry
 
 	router.Use(middleware.Logger)
-	router.Get("/api/v2/mcap", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/api/v2/mcap/get", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		queryParams := r.URL.Query()
@@ -34,7 +34,7 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 
 		var entries []DataEntry
 		for _, entry := range matchingEntries {
-			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path)
+			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path+"/"+entry.FileName)
 			entry.SignedURL = signedUrl
 			entries = append(entries, entry)
 		}

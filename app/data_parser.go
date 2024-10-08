@@ -16,6 +16,7 @@ type DataEntry struct {
 	EventType string `json:"event_type"`
 	Bucket    string `json:"aws_bucket"`
 	Path      string `json:"mcap_path"`
+	FileName  string `json:"mcap_file_name"`
 	SignedURL string `json:"signed_url"`
 }
 
