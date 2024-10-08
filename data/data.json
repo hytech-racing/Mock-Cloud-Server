@@ -15,10 +15,10 @@
     },
     {
         "id": "fb48f265-a44a-4fd5-a873-26cd581950a0",
-        "mcap_file_name": "file2.mcap",
+        "mcap_file_name": "IMG_6327.HEIC",
         "matlab_file_name": "file2.mat",
         "aws_bucket": "run-metadata",
-        "mcap_path": "mock-cloud-server/IMG_6327.HEIC",
+        "mcap_path": "mock-cloud-server",
         "mat_path": "/path/to/s3/object",
         "vn_lat_lon_path": "/path/to/s3/object",
         "velocity_plot_path": "/path/to/s3/object",
