@@ -31,24 +31,10 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 
 		matchingEntries = ParseJSON(file, queryParams)
 
-		if len(matchingEntries) == 0 {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
-			emptyList := []interface{}{} // An empty list
-			encoder := json.NewEncoder(w)
-			err := encoder.Encode(emptyList)
-			if err != nil {
-				http.Error(w, "Failed to write response", http.StatusInternalServerError)
-				fmt.Println(err)
-				return
-			}
-			return
-		}
-
 		fmt.Println(matchingEntries)
 
 		var entries []DataEntry
+
 		for _, entry := range matchingEntries {
 			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path+"/"+entry.FileName)
 			entry.SignedURL = signedUrl

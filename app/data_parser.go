@@ -54,9 +54,17 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 		for _, p := range nonEmptyParams {
 			if entryContains(entry, p) {
 				matchingEntries = append(matchingEntries, entry)
+				break
 			}
 		}
 	}
+
+	if len(matchingEntries) == 0 {
+		matchingEntries = dataEntries
+	}
+
+	// fmt.Println("DATA ENTRIES")
+	// fmt.Println(dataEntries)
 
 	// Sort matching entries by date
 	sort.Slice(matchingEntries, func(i, j int) bool {
