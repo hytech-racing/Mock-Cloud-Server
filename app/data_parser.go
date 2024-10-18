@@ -64,34 +64,55 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 		matchingEntries = dataEntries
 	}
 
-	// fmt.Println("DATA ENTRIES")
-	// fmt.Println(dataEntries)
+	sortByDate(matchingEntries)
 
-	// Sort matching entries by date
-	sort.Slice(matchingEntries, func(i, j int) bool {
-		date1, err1 := time.Parse("01-02-2006", matchingEntries[i].Date)
-		date2, err2 := time.Parse("01-02-2006", matchingEntries[j].Date)
-		if err1 != nil || err2 != nil {
-			// If there's an error in parsing, don't sort by date
-			return false
-		}
-		return date1.Before(date2)
-	})
+	fmt.Println("MATCHING ENTRIES SORTED")
+	fmt.Println(matchingEntries)
 
 	return matchingEntries
 }
 
 func entryContains(entry DataEntry, value string) bool {
-	// Check if any fields match exactly (case-insensitive)
 	if strings.EqualFold(entry.Date, value) || strings.EqualFold(entry.Location, value) ||
 		strings.EqualFold(entry.EventType, value) {
 		return true
 	}
 
-	// Check if the notes contain the value as a substring (case-insensitive)
 	if strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(value)) {
 		return true
 	}
 
 	return false
+}
+
+type ByDate []DataEntry
+
+func (a ByDate) Len() int      { return len(a) }
+func (a ByDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByDate) Less(i, j int) bool {
+	layout := "01-02-2006" // MM-DD-YYYY format
+
+	// Try to parse dates
+	fmt.Println(a[i].Date)
+	fmt.Println(a[j].Date)
+	dateI, errI := time.Parse(layout, a[i].Date)
+	dateJ, errJ := time.Parse(layout, a[j].Date)
+
+	if errI != nil {
+		fmt.Printf("Error parsing date for entry %v: %v\n", a[i], errI)
+	}
+	if errJ != nil {
+		fmt.Printf("Error parsing date for entry %v: %v\n", a[j], errJ)
+	}
+
+	// Handle parsing errors (keep original order if there's an error)
+	if errI != nil || errJ != nil {
+		return false
+	}
+
+	return dateI.Before(dateJ)
+}
+
+func sortByDate(entries []DataEntry) {
+	sort.Sort(ByDate(entries))
 }

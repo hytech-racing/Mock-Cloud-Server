@@ -31,8 +31,6 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 
 		matchingEntries = ParseJSON(file, queryParams)
 
-		fmt.Println(matchingEntries)
-
 		var entries []DataEntry
 
 		for _, entry := range matchingEntries {
