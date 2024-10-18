@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -81,8 +82,16 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 }
 
 func entryContains(entry DataEntry, value string) bool {
-	if entry.Date == value || entry.Location == value || entry.Notes == value || entry.EventType == value {
+	// Check if any fields match exactly (case-insensitive)
+	if strings.EqualFold(entry.Date, value) || strings.EqualFold(entry.Location, value) ||
+		strings.EqualFold(entry.EventType, value) {
 		return true
 	}
+
+	// Check if the notes contain the value as a substring (case-insensitive)
+	if strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(value)) {
+		return true
+	}
+
 	return false
 }
