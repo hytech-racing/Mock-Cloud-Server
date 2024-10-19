@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  mock-server-app:
+    build: .
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
