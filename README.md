@@ -115,6 +115,8 @@ http://localhost:8080/api/v2/mcap/get
 -   `date` (string): The date of the event in `MM/DD/YY` format (e.g., `9/24/24`).
 -   `notes` (string): Additional notes about the event (e.g., `car ran fast`). Note that spaces should be URL-encoded as `%20`.
 -   `event_type` (string): The type of event (e.g., `endurance`).
+-   `start_date` (string): Only return events occurring on or after this date, in `MM-DD-YYYY` format (e.g., `09-01-2024`).
+-   `end_date` (string): Only return events occurring on or before this date, in `MM-DD-YYYY` format (e.g., `09-30-2024`).
 
 **Example Request:**
 
