@@ -6,19 +6,25 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
 
 type DataEntry struct {
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	Notes     string `json:"notes"`
-	EventType string `json:"event_type"`
-	Bucket    string `json:"aws_bucket"`
-	Path      string `json:"mcap_path"`
-	FileName  string `json:"mcap_file_name"`
-	SignedURL string `json:"signed_url"`
+	ID               string `json:"id"`
+	MCAPFileName     string `json:"mcap_file_name"`
+	MatlabFileName   string `json:"matlab_file_name"`
+	AWSBucket        string `json:"aws_bucket"`
+	MCAPPath         string `json:"mcap_path"`
+	MatPath          string `json:"mat_path"`
+	VNLatLonPath     string `json:"vn_lat_lon_path"`
+	VelocityPlotPath string `json:"velocity_plot_path"`
+	Date             string `json:"date"`
+	Location         string `json:"location"`
+	Notes            string `json:"notes,omitempty"`
+	EventType        string `json:"event_type,omitempty"`
+	SignedURL   	 string `json:"signed_url"`
 }
 
 func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
@@ -87,12 +93,15 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 		}
 	}
 
-	if len(nonEmptyParams) == 0 {
-		matchingEntries = dataEntries
-	}
-
-	fmt.Println("MATCHING ENTRIES SORTED")
-	fmt.Println(matchingEntries)
+	// Sort matching entries by date
+	sort.Slice(matchingEntries, func(i, j int) bool {
+		date1, err1 := time.Parse("01-02-2006", matchingEntries[i].Date)
+		date2, err2 := time.Parse("01-02-2006", matchingEntries[j].Date)
+		if err1 != nil || err2 != nil {
+			return false
+		}
+		return date1.Before(date2)
+	})
 
 	return matchingEntries
 }
@@ -111,12 +120,8 @@ func entryContains(startDate time.Time, endDate time.Time, entry DataEntry, valu
 		return false
 	}
 
-	if strings.EqualFold(entry.Location, value) ||
-		strings.EqualFold(entry.EventType, value) {
-		return true
-	}
-
-	if strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(value)) {
+	lowerValue := strings.ToLower(value)
+	if entry.Date == value || strings.ToLower(entry.Location) == lowerValue || strings.ToLower(entry.Notes) == lowerValue || strings.ToLower(entry.EventType) == lowerValue {
 		return true
 	}
 
