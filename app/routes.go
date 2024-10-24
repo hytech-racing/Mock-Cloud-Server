@@ -66,8 +66,9 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 		encoder := json.NewEncoder(w)
 		encoder.SetEscapeHTML(false)
 		w.Header().Set("Content-Type", "application/json")
-		err = encoder.Encode(entries)
-
+		res := make(map[string]interface{})
+		res["data"] = entries
+		err = encoder.Encode(res)
 		if err != nil {
 			http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
 			fmt.Println(err)
