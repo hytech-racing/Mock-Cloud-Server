@@ -42,9 +42,9 @@ func main() {
 	// s3Repo := &app.S3Repository{}
 	a := app.New(s3_respository)
 
-	err := a.Start(context.TODO())
-	if err != nil {
-		fmt.Println("failed to start app:", err)
+	appErr := a.Start(context.TODO())
+	if appErr != nil {
+		fmt.Println("failed to start app:", appErr)
 	}
 }
 
