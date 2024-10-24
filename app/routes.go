@@ -11,12 +11,20 @@ import (
 	"github.com/hytech-racing/Mock-Cloud-Server/handler"
 )
 
+func enableCORS(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+}
+
 func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 	router := chi.NewRouter()
 	var matchingEntries []DataEntry
 
 	router.Use(middleware.Logger)
 	router.Get("/api/v2/mcap/get", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(&w)
+
 		w.WriteHeader(http.StatusOK)
 
 		queryParams := r.URL.Query()
@@ -46,11 +54,11 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 			return
 		}
 
-		fmt.Println(matchingEntries)
+		// fmt.Println(matchingEntries)
 
 		var entries []DataEntry
 		for _, entry := range matchingEntries {
-			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.Bucket, entry.Path+"/"+entry.FileName)
+			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.AWSBucket, entry.MCAPPath+"/"+entry.MCAPFileName)
 			entry.SignedURL = signedUrl
 			entries = append(entries, entry)
 		}
