@@ -11,55 +11,45 @@ import (
 )
 
 type DataEntry struct {
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	Notes     string `json:"notes"`
-	EventType string `json:"event_type"`
-	Bucket    string `json:"aws_bucket"`
-	Path      string `json:"mcap_path"`
-	FileName  string `json:"mcap_file_name"`
-	SignedURL string `json:"signed_url"`
+	ID               string `json:"id"`
+	MCAPFileName     string `json:"mcap_file_name"`
+	MatlabFileName   string `json:"matlab_file_name"`
+	AWSBucket        string `json:"aws_bucket"`
+	MCAPPath         string `json:"mcap_path"`
+	MatPath          string `json:"mat_path"`
+	VNLatLonPath     string `json:"vn_lat_lon_path"`
+	VelocityPlotPath string `json:"velocity_plot_path"`
+	Date             string `json:"date"`
+	Location         string `json:"location"`
+	Notes            string `json:"notes,omitempty"`
+	EventType        string `json:"event_type,omitempty"`
+	SignedURL   	 string `json:"signed_url"`
 }
 
 func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
-	var nonEmptyParams []string
 	var dataEntries []DataEntry
 
-	start_date := queryParams.Get("start_date")
-	end_date := queryParams.Get("end_date")
+	start_date := queryParams.Get("afterDate")
+	end_date := queryParams.Get("beforeDate")
+	file_name := queryParams.Get("filename")
 	location := queryParams.Get("location")
 	notes := queryParams.Get("notes")
-	eventType := queryParams.Get("event_type")
+	eventType := queryParams.Get("eventType")
 
-	if location != "" {
-		nonEmptyParams = append(nonEmptyParams, location)
-	}
-	if notes != "" {
-		nonEmptyParams = append(nonEmptyParams, notes)
-	}
-	if eventType != "" {
-		nonEmptyParams = append(nonEmptyParams, eventType)
-	}
-
-	var parsedStartDate time.Time
+	var parsedStartDate, parsedEndDate time.Time
 	var err error
+	// Parse start_date
 	if start_date != "" {
-		parsedStartDate, err = time.Parse("01-02-2006", start_date)
+		parsedStartDate, err = time.Parse("01-02-2006", start_date) // MM-DD-YYYY
 		if err != nil {
-			log.Fatalf("could not parse date: %v", err)
-		}
-	} else {
-		parsedStartDate, err = time.Parse("01-02-2006", "01-01-1970")
-		if err != nil {
-			log.Fatalf("could not parse date: %v", err)
+			log.Fatalf("could not parse start date: %v", err)
 		}
 	}
-
-	var parsedEndDate time.Time
+	// Parse end_date
 	if end_date != "" {
-		parsedEndDate, err = time.Parse("01-02-2006", end_date)
+		parsedEndDate, err = time.Parse("01-02-2006", end_date) // MM-DD-YYYY
 		if err != nil {
-			log.Fatalf("could not parse date: %v", err)
+			log.Fatalf("could not parse end date: %v", err)
 		}
 	} else {
 		parsedEndDate, err = time.Parse("01-02-2006", "01-01-2070")
@@ -67,8 +57,6 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 			log.Fatalf("could not parse date: %v", err)
 		}
 	}
-
-	fmt.Println(parsedStartDate, parsedEndDate)
 
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&dataEntries)
@@ -79,46 +67,50 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 	var matchingEntries []DataEntry
 
 	for _, entry := range dataEntries {
-		for _, p := range nonEmptyParams {
-			if entryContains(parsedStartDate, parsedEndDate, entry, p) {
-				matchingEntries = append(matchingEntries, entry)
-				break
-			}
+		if matchesFilters(parsedStartDate, parsedEndDate, entry, file_name, location, notes, eventType) {
+			matchingEntries = append(matchingEntries, entry)
 		}
 	}
 
-	if len(nonEmptyParams) == 0 {
-		matchingEntries = dataEntries
-	}
-
 	fmt.Println("MATCHING ENTRIES SORTED")
-	fmt.Println(matchingEntries)
 
 	return matchingEntries
 }
 
-func entryContains(startDate time.Time, endDate time.Time, entry DataEntry, value string) bool {
+func matchesFilters(startDate time.Time, endDate time.Time, entry DataEntry, fileName, location, notes, eventType string) bool {
 	entryDate, err := time.Parse("01-02-2006", entry.Date)
 	if err != nil {
 		log.Fatalf("could not parse entry date: %v", entry.Date)
 	}
 
-	// if !(entryDate.Equal(startDate) || entryDate.Equal(endDate) || (entryDate.After(startDate) && entryDate.Before(endDate))) {
-	// 	return false
-	// }
-
-	if !entryDate.Equal(startDate) && !entryDate.Equal(endDate) && (entryDate.Before(startDate) || entryDate.After(endDate)) {
+	// Date filter logic
+	if !startDate.IsZero() && !entryDate.After(startDate) {
+		return false
+	}
+	if !endDate.Equal(time.Date(2070, 1, 1, 0, 0, 0, 0, time.UTC)) && !entryDate.Before(endDate) {
 		return false
 	}
 
-	if strings.EqualFold(entry.Location, value) ||
-		strings.EqualFold(entry.EventType, value) {
-		return true
+	// File name filter logic
+	if fileName != "" && !strings.Contains(strings.ToLower(entry.MCAPFileName), strings.ToLower(fileName)) {
+		return false
 	}
 
-	if strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(value)) {
-		return true
+	// Location filter logic
+	if location != "" && !strings.EqualFold(entry.Location, location) {
+		return false
 	}
 
-	return false
+	// Notes filter logic
+	if notes != "" && !strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(notes)) {
+		return false
+	}
+
+	// Event type filter logic
+	if eventType != "" && !strings.EqualFold(entry.EventType, eventType) {
+		return false
+	}
+
+	// If all checks pass, return true
+	return true
 }
