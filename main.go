@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	// err := os.Getenv(".env")
-	// if err == "" {
+	// err := godotenv.Load(".env")
+	// if err != nil {
 	// 	log.Fatalf("Error loading .env file %s", err)
 	// }
 
@@ -42,9 +42,9 @@ func main() {
 	// s3Repo := &app.S3Repository{}
 	a := app.New(s3_respository)
 
-	err := a.Start(context.TODO())
-	if err != nil {
-		fmt.Println("failed to start app:", err)
+	appErr := a.Start(context.TODO())
+	if appErr != nil {
+		fmt.Println("failed to start app:", appErr)
 	}
 }
 
