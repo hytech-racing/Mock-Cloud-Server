@@ -26,28 +26,56 @@ type DataEntry struct {
 	SignedURL   	 string `json:"signed_url"`
 }
 
-func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
-	var dataEntries []DataEntry
+type MCAPFileType struct {
+	FileName 		 string `json:"file_name"`
+	SignedURL 		 string `json:"signed_url"`
+}
+type MATFileType struct {
+	FileName 		 string `json:"file_name"`
+	SignedURL 		 string `json:"signed_url"`
+}
 
-	start_date := queryParams.Get("afterDate")
-	end_date := queryParams.Get("beforeDate")
-	file_name := queryParams.Get("filename")
+type ContentFileType struct {
+	FileName 		 string `json:"file_name"`
+	SignedURL 		 string `json:"signed_url"`
+}
+
+type SchemaType struct {
+	FileName 		 string `json:"schema"`
+}
+
+type DataEntryNew struct {
+	ID               string `json:"id"`
+	MCAPFiles     	 []MCAPFileType `json:"mcap_files"`
+	MATFiles   		 []MATFileType `json:"mat_files"`
+	ContentFiles   	 []ContentFileType `json:"content_files"`
+	Date             string `json:"date"`
+	Location         string `json:"location"`
+	Notes            string `json:"notes,omitempty"`
+	EventType        string `json:"event_type,omitempty"`
+	Schema			 map[string]string `json:"schema"`
+}
+
+func ParseJSONNew(file *os.File, queryParams url.Values) []DataEntryNew {
+	var dataEntries []DataEntryNew
+
+	startDate := queryParams.Get("afterDate")
+	endDate := queryParams.Get("beforeDate")
+	fileName := queryParams.Get("filename")
 	location := queryParams.Get("location")
 	notes := queryParams.Get("notes")
 	eventType := queryParams.Get("eventType")
 
 	var parsedStartDate, parsedEndDate time.Time
 	var err error
-	// Parse start_date
-	if start_date != "" {
-		parsedStartDate, err = time.Parse("01-02-2006", start_date) // MM-DD-YYYY
+	if startDate != "" {
+		parsedStartDate, err = time.Parse("01-02-2006", startDate)
 		if err != nil {
 			log.Fatalf("could not parse start date: %v", err)
 		}
 	}
-	// Parse end_date
-	if end_date != "" {
-		parsedEndDate, err = time.Parse("01-02-2006", end_date) // MM-DD-YYYY
+	if endDate != "" {
+		parsedEndDate, err = time.Parse("01-02-2006", endDate)
 		if err != nil {
 			log.Fatalf("could not parse end date: %v", err)
 		}
@@ -64,53 +92,59 @@ func ParseJSON(file *os.File, queryParams url.Values) []DataEntry {
 		fmt.Println("Error parsing JSON:", err)
 	}
 
-	var matchingEntries []DataEntry
+	var matchingEntries []DataEntryNew
 
 	for _, entry := range dataEntries {
-		if matchesFilters(parsedStartDate, parsedEndDate, entry, file_name, location, notes, eventType) {
+		if matchesFiltersNew(entry, parsedStartDate, parsedEndDate, fileName, location, notes, eventType) {
 			matchingEntries = append(matchingEntries, entry)
 		}
 	}
 
-	fmt.Println("MATCHING ENTRIES SORTED")
-
-	return matchingEntries
+	return matchingEntries;
 }
 
-func matchesFilters(startDate time.Time, endDate time.Time, entry DataEntry, fileName, location, notes, eventType string) bool {
+func matchesFiltersNew(entry DataEntryNew, startDate, endDate time.Time, fileName, location, notes, eventType string) bool {
 	entryDate, err := time.Parse("01-02-2006", entry.Date)
 	if err != nil {
-		log.Fatalf("could not parse entry date: %v", entry.Date)
-	}
-
-	// Date filter logic
-	if !startDate.IsZero() && !entryDate.After(startDate) {
+		fmt.Printf("Error parsing entry date: %v\n", err)
 		return false
 	}
-	if !endDate.Equal(time.Date(2070, 1, 1, 0, 0, 0, 0, time.UTC)) && !entryDate.Before(endDate) {
-		return false
-	}
+	if (startDate.IsZero() || entryDate.After(startDate) || entryDate.Equal(startDate)) &&
+		(endDate.IsZero() || entryDate.Before(endDate) || entryDate.Equal(endDate)) {
+		if fileName != "" {
+			fileMatched := false
+			for _, mcapFile := range entry.MCAPFiles {
+				fmt.Println(mcapFile.FileName)
+				if strings.Contains(mcapFile.FileName, fileName) {
+					fileMatched = true
+					break
+				}
+			}
+			for _, matFile := range entry.MATFiles {
+				fmt.Println(matFile.FileName)
+				if strings.Contains(matFile.FileName, fileName) {
+					fileMatched = true
+					break
+				}
+			}
+			if !fileMatched {
+				return false
+			}
+		}
 
-	// File name filter logic
-	if fileName != "" && !strings.Contains(strings.ToLower(entry.MCAPFileName), strings.ToLower(fileName)) {
-		return false
-	}
+		if location != "" && !strings.Contains(entry.Location, location) {
+			return false
+		}
 
-	// Location filter logic
-	if location != "" && !strings.EqualFold(entry.Location, location) {
-		return false
-	}
+		if notes != "" && !strings.Contains(entry.Notes, notes) {
+			return false
+		}
 
-	// Notes filter logic
-	if notes != "" && !strings.Contains(strings.ToLower(entry.Notes), strings.ToLower(notes)) {
-		return false
-	}
+		if eventType != "" && !strings.Contains(entry.EventType, eventType) {
+			return false
+		}
 
-	// Event type filter logic
-	if eventType != "" && !strings.EqualFold(entry.EventType, eventType) {
-		return false
+		return true
 	}
-
-	// If all checks pass, return true
-	return true
+	return false
 }

@@ -19,17 +19,19 @@ func enableCORS(w *http.ResponseWriter) {
 
 func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 	router := chi.NewRouter()
-	var matchingEntries []DataEntry
-
+	
 	router.Use(middleware.Logger)
-	router.Get("/api/v2/mcap/get", func(w http.ResponseWriter, r *http.Request) {
+
+	router.Get("/api/v2/mcap/getNew", func(w http.ResponseWriter, r *http.Request) {
+		var matchingEntries []DataEntryNew
+		
 		enableCORS(&w)
 
 		w.WriteHeader(http.StatusOK)
 
 		queryParams := r.URL.Query()
 
-		file, err := os.Open("data/data.json")
+		file, err := os.Open("data/data-new.json")
 		if err != nil {
 			http.Error(w, "Failed to open data file", http.StatusInternalServerError)
 			fmt.Println(err)
@@ -37,27 +39,19 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 		}
 		defer file.Close()
 
-		matchingEntries = ParseJSON(file, queryParams)
-
-		entries := make([]DataEntry, 0)
-
-		for _, entry := range matchingEntries {
-			signedUrl := s3Repo.GetSignedUrl(r.Context(), entry.AWSBucket, entry.MCAPPath+"/"+entry.MCAPFileName)
-			entry.SignedURL = signedUrl
-			entries = append(entries, entry)
-		}
+		matchingEntries = ParseJSONNew(file, queryParams)
 
 		encoder := json.NewEncoder(w)
 		encoder.SetEscapeHTML(false)
 		w.Header().Set("Content-Type", "application/json")
 		res := make(map[string]interface{})
-		res["data"] = entries
+		res["data"] = matchingEntries
 		err = encoder.Encode(res)
 		if err != nil {
 			http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
 			fmt.Println(err)
 			return
-		}
+		}	
 	})
 
 	router.Route("/api/v2/mcap/", loadFileRoutes)
