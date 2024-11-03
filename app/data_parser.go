@@ -30,10 +30,6 @@ type FileType struct {
 	SignedURL 		 string `json:"signed_url"`
 }
 
-type SchemaType struct {
-	FileName 		 string `json:"schema"`
-}
-
 type DataEntryNew struct {
 	ID               string `json:"id"`
 	MCAPFiles     	 []FileType `json:"mcap_files"`
