@@ -25,17 +25,7 @@ type DataEntry struct {
 	EventType        string `json:"event_type,omitempty"`
 	SignedURL   	 string `json:"signed_url"`
 }
-
-type MCAPFileType struct {
-	FileName 		 string `json:"file_name"`
-	SignedURL 		 string `json:"signed_url"`
-}
-type MATFileType struct {
-	FileName 		 string `json:"file_name"`
-	SignedURL 		 string `json:"signed_url"`
-}
-
-type ContentFileType struct {
+type FileType struct {
 	FileName 		 string `json:"file_name"`
 	SignedURL 		 string `json:"signed_url"`
 }
@@ -46,9 +36,9 @@ type SchemaType struct {
 
 type DataEntryNew struct {
 	ID               string `json:"id"`
-	MCAPFiles     	 []MCAPFileType `json:"mcap_files"`
-	MATFiles   		 []MATFileType `json:"mat_files"`
-	ContentFiles   	 []ContentFileType `json:"content_files"`
+	MCAPFiles     	 []FileType `json:"mcap_files"`
+	MATFiles   		 []FileType `json:"mat_files"`
+	ContentFiles   	 []FileType `json:"content_files"`
 	Date             string `json:"date"`
 	Location         string `json:"location"`
 	Notes            string `json:"notes,omitempty"`
