@@ -30,11 +30,16 @@ type FileType struct {
 	SignedURL 		 string `json:"signed_url"`
 }
 
+type ContentFileType struct {
+	Content 		 string `json:"content"`
+	SignedURL 		 string `json:"signed_url"`
+}
+
 type DataEntryNew struct {
 	ID               string `json:"id"`
 	MCAPFiles     	 []FileType `json:"mcap_files"`
 	MATFiles   		 []FileType `json:"mat_files"`
-	ContentFiles   	 []FileType `json:"content_files"`
+	ContentFiles   	 []ContentFileType `json:"content_files"`
 	Date             string `json:"date"`
 	Location         string `json:"location"`
 	Notes            string `json:"notes,omitempty"`
@@ -45,6 +50,7 @@ type DataEntryNew struct {
 func ParseJSONNew(file *os.File, queryParams url.Values) []DataEntryNew {
 	var dataEntries []DataEntryNew
 
+	id := queryParams.Get("id")
 	startDate := queryParams.Get("afterDate")
 	endDate := queryParams.Get("beforeDate")
 	fileName := queryParams.Get("filename")
@@ -81,7 +87,7 @@ func ParseJSONNew(file *os.File, queryParams url.Values) []DataEntryNew {
 	var matchingEntries []DataEntryNew
 
 	for _, entry := range dataEntries {
-		if matchesFiltersNew(entry, parsedStartDate, parsedEndDate, fileName, location, notes, eventType) {
+		if matchesFiltersNew(entry, parsedStartDate, parsedEndDate, fileName, location, notes, eventType, id) {
 			matchingEntries = append(matchingEntries, entry)
 		}
 	}
@@ -89,7 +95,7 @@ func ParseJSONNew(file *os.File, queryParams url.Values) []DataEntryNew {
 	return matchingEntries;
 }
 
-func matchesFiltersNew(entry DataEntryNew, startDate, endDate time.Time, fileName, location, notes, eventType string) bool {
+func matchesFiltersNew(entry DataEntryNew, startDate, endDate time.Time, fileName, location, notes, eventType, id string) bool {
 	entryDate, err := time.Parse("01-02-2006", entry.Date)
 	if err != nil {
 		fmt.Printf("Error parsing entry date: %v\n", err)
@@ -119,6 +125,10 @@ func matchesFiltersNew(entry DataEntryNew, startDate, endDate time.Time, fileNam
 		}
 
 		if location != "" && !strings.Contains(entry.Location, location) {
+			return false
+		}
+
+		if id != "" && !strings.Contains(entry.ID, id) {
 			return false
 		}
 

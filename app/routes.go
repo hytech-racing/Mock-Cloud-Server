@@ -22,7 +22,7 @@ func loadRoutes(s3Repo *S3Repository) *chi.Mux {
 	
 	router.Use(middleware.Logger)
 
-	router.Get("/api/v2/mcap/getNew", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/api/v2/mcap/get", func(w http.ResponseWriter, r *http.Request) {
 		var matchingEntries []DataEntryNew
 		
 		enableCORS(&w)
