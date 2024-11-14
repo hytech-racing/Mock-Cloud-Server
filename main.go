@@ -7,13 +7,16 @@ import (
 	"os"
 
 	"github.com/hytech-racing/Mock-Cloud-Server/app"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// err := godotenv.Load(".env")
-	// if err != nil {
-	// 	log.Fatalf("Error loading .env file %s", err)
-	// }
+	if(os.Args[1] != "") {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalf("Error loading .env file %s", err)
+		}
+	}
 
 	// Setup aws s3 connection
 	aws_region := os.Getenv("AWS_REGION")
